@@ -1,0 +1,49 @@
+{
+  "home": "Home",
+  "shop": "Shop",
+  "aboutUs": "About Us",
+  "contact": "Contact",
+  "sellerDashboard": "Seller Dashboard",
+  "account": "Account",
+  "login": "Login",
+  "products": "Products",
+  "cart": "Cart",
+  "myOrders": "My Orders",
+  "search": "Search...",
+
+  "aboutDescription1": "Welcome to ShopEase — your ultimate destination for the latest tech gadgets. We're passionate about delivering top-quality products and a seamless shopping experience.",
+  "aboutDescription2": "Our mission is to bring innovation closer to you with a curated selection of trending electronics, supported by excellent customer service and lightning-fast delivery.",
+  "ourStory": "Our Story",
+  "ourStoryDescription": "Founded in 2020, ShopEase started as a small online store with a big vision. Today, we serve thousands of satisfied customers across the country with our wide range of products and exceptional service.",
+
+  "name": "Name",
+  "email": "Email",
+  "message": "Message",
+  "sendMessage": "Send Message",
+
+  "loginTitle": "Login to Your Account",
+  "loginError": "Invalid credentials. Use admin@test.com / 123456",
+  "dontHaveAccount": "Don't have an account?",
+  "register": "Register",
+
+  "slider": {
+    "slide1": {
+      "offer": "Limited Time Offer: 30% Off",
+      "title": "Experience Pure Sound –\nYour Perfect Headphones Awaits!",
+      "btnText": "Shop Now",
+      "linkText": "Find more"
+    },
+    "slide2": {
+      "offer": "Special Deal: 40% Off",
+      "title": "Next-Gen Gaming Console\nWith Exclusive Games",
+      "btnText": "Shop Now",
+      "linkText": "Find more"
+    },
+    "slide3": {
+      "offer": "Flash Sale: 20% Off",
+      "title": "Powerful Laptop for\nWork and Entertainment",
+      "btnText": "Shop Now",
+      "linkText": "Find more"
+    }
+  }
+}
