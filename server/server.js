@@ -2,12 +2,32 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+const helmet = require("helmet");   // ✅ Helmet import
 
 dotenv.config();
 const app = express();
 
 // Connect to Database
 connectDB();
+
+// ✅ Helmet middleware (CSP config)
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "https://www.google-analytics.com",
+        "'unsafe-inline'" // ⚠ Dev use only. For production -> use sha256 hashes
+      ],
+      connectSrc: ["'self'", "https://www.google-analytics.com"],
+      imgSrc: ["'self'", "data:", "https://www.google-analytics.com"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      fontSrc: ["'self'", "data:"],
+    },
+  })
+);
 
 // Middleware
 app.use(cors({

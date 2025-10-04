@@ -5,13 +5,19 @@ const ManageProducts = () => {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState({
     name: "",
+    slug: "",
     description: "",
     brand: "",
     category: "",
+    tags: "",
     basePrice: "",
     rating: "",
+    isDeal: false,
+    dealEnd: "",
   });
+
   const [image, setImage] = useState(null);
+  const [variants, setVariants] = useState([]);
 
   useEffect(() => {
     loadProducts();
@@ -27,15 +33,29 @@ const ManageProducts = () => {
   };
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const fd = new FormData();
-      Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+      Object.entries(form).forEach(([k, v]) => {
+        if (k === "tags") {
+          // convert comma separated to array
+          v.split(",").map((tag) => fd.append("tags", tag.trim()));
+        } else {
+          fd.append(k, v);
+        }
+      });
+
       if (image) fd.append("image", image);
+
+      // variants (convert JSON → string before send)
+      if (variants.length > 0) {
+        fd.append("variants", JSON.stringify(variants));
+      }
 
       await API.post("/products", fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -44,13 +64,18 @@ const ManageProducts = () => {
       // Reset form
       setForm({
         name: "",
+        slug: "",
         description: "",
         brand: "",
         category: "",
+        tags: "",
         basePrice: "",
         rating: "",
+        isDeal: false,
+        dealEnd: "",
       });
       setImage(null);
+      setVariants([]);
 
       await loadProducts();
     } catch (err) {
@@ -65,6 +90,23 @@ const ManageProducts = () => {
     } catch (err) {
       console.error("❌ Error deleting product:", err);
     }
+  };
+
+  // Add new variant example
+  const addVariant = () => {
+    setVariants([
+      ...variants,
+      {
+        color: "",
+        colorCode: "",
+        images: [],
+        model3d: "",
+        arOverlay: "",
+        price: "",
+        originalPrice: "",
+        sizes: [],
+      },
+    ]);
   };
 
   return (
@@ -82,6 +124,14 @@ const ManageProducts = () => {
           placeholder="Product Name"
           className="w-full border px-4 py-3 rounded-md"
           required
+        />
+        <input
+          type="text"
+          name="slug"
+          value={form.slug}
+          onChange={handleChange}
+          placeholder="Slug (unique)"
+          className="w-full border px-4 py-3 rounded-md"
         />
         <textarea
           name="description"
@@ -108,13 +158,21 @@ const ManageProducts = () => {
             className="border px-4 py-3 rounded-md"
           />
         </div>
+        <input
+          type="text"
+          name="tags"
+          value={form.tags}
+          onChange={handleChange}
+          placeholder="Tags (comma separated)"
+          className="w-full border px-4 py-3 rounded-md"
+        />
         <div className="grid grid-cols-2 gap-4">
           <input
             type="number"
             name="basePrice"
             value={form.basePrice}
             onChange={handleChange}
-            placeholder="Price"
+            placeholder="Base Price"
             className="border px-4 py-3 rounded-md"
           />
           <input
@@ -127,11 +185,115 @@ const ManageProducts = () => {
             className="border px-4 py-3 rounded-md"
           />
         </div>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              name="isDeal"
+              checked={form.isDeal}
+              onChange={handleChange}
+            />
+            Deal?
+          </label>
+          {form.isDeal && (
+            <input
+              type="date"
+              name="dealEnd"
+              value={form.dealEnd}
+              onChange={handleChange}
+              className="border px-4 py-2 rounded-md"
+            />
+          )}
+        </div>
+
         <input
           type="file"
           onChange={(e) => setImage(e.target.files[0])}
           className="w-full"
         />
+
+        {/* Variants Section */}
+        <div className="border p-4 rounded-md space-y-3">
+          <h3 className="font-semibold">Variants</h3>
+          {variants.map((v, i) => (
+            <div key={i} className="border p-3 rounded-md space-y-2">
+              <input
+                type="text"
+                placeholder="Color"
+                value={v.color}
+                onChange={(e) => {
+                  const copy = [...variants];
+                  copy[i].color = e.target.value;
+                  setVariants(copy);
+                }}
+                className="w-full border px-3 py-2 rounded-md"
+              />
+              <input
+                type="text"
+                placeholder="Color Code (#000000)"
+                value={v.colorCode}
+                onChange={(e) => {
+                  const copy = [...variants];
+                  copy[i].colorCode = e.target.value;
+                  setVariants(copy);
+                }}
+                className="w-full border px-3 py-2 rounded-md"
+              />
+              <input
+                type="text"
+                placeholder="3D Model URL"
+                value={v.model3d}
+                onChange={(e) => {
+                  const copy = [...variants];
+                  copy[i].model3d = e.target.value;
+                  setVariants(copy);
+                }}
+                className="w-full border px-3 py-2 rounded-md"
+              />
+              <input
+                type="text"
+                placeholder="AR Overlay URL"
+                value={v.arOverlay}
+                onChange={(e) => {
+                  const copy = [...variants];
+                  copy[i].arOverlay = e.target.value;
+                  setVariants(copy);
+                }}
+                className="w-full border px-3 py-2 rounded-md"
+              />
+              <input
+                type="number"
+                placeholder="Price"
+                value={v.price}
+                onChange={(e) => {
+                  const copy = [...variants];
+                  copy[i].price = e.target.value;
+                  setVariants(copy);
+                }}
+                className="w-full border px-3 py-2 rounded-md"
+              />
+              <input
+                type="number"
+                placeholder="Original Price"
+                value={v.originalPrice}
+                onChange={(e) => {
+                  const copy = [...variants];
+                  copy[i].originalPrice = e.target.value;
+                  setVariants(copy);
+                }}
+                className="w-full border px-3 py-2 rounded-md"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addVariant}
+            className="bg-gray-200 px-3 py-2 rounded-md"
+          >
+            ➕ Add Variant
+          </button>
+        </div>
+
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition"
@@ -140,6 +302,7 @@ const ManageProducts = () => {
         </button>
       </form>
 
+      {/* Product List */}
       <div className="bg-white shadow-md rounded-xl p-6">
         <h2 className="text-xl font-semibold mb-4">📋 Products List</h2>
         {products.length > 0 ? (

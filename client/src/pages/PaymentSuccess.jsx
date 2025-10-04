@@ -1,4 +1,3 @@
-// src/pages/PaymentSuccess.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import API from "../api";
@@ -14,15 +13,14 @@ const PaymentSuccess = () => {
 
   useEffect(() => {
     if (orderId) {
-      // Fetch order details
-      API.get(`/orders/${orderId}`)
-        .then(res => {
+      API.get(`/orders/public/${orderId}`)
+        .then((res) => {
           if (res.data.success) {
             setOrder(res.data.order);
           }
         })
-        .catch(err => {
-          console.error("Failed to fetch order:", err);
+        .catch((err) => {
+          console.error("❌ Failed to fetch order:", err);
         })
         .finally(() => {
           setLoading(false);
@@ -47,13 +45,20 @@ const PaymentSuccess = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
         <div className="text-green-600 text-6xl mb-4">✅</div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">Payment Successful!</h1>
-        
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">
+          Payment Successful!
+        </h1>
+
         {order && (
           <div className="mb-6 text-left bg-gray-50 p-4 rounded">
             <p><strong>Order ID:</strong> {order._id}</p>
             <p><strong>Amount:</strong> Rs. {order.total?.toFixed(2)}</p>
-            <p><strong>Status:</strong> <span className="text-green-600 capitalize">{order.paymentStatus}</span></p>
+            <p>
+              <strong>Status:</strong>{" "}
+              <span className="text-green-600 capitalize">
+                {order.paymentStatus}
+              </span>
+            </p>
             {paymentId && <p><strong>Payment ID:</strong> {paymentId}</p>}
           </div>
         )}
