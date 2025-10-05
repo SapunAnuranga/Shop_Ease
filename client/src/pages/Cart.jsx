@@ -16,7 +16,7 @@ const Cart = () => {
     );
   }
 
-  if (cartItems.length === 0) {
+  if (!cartItems || cartItems.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500 text-lg mb-4">Your cart is empty</p>
@@ -45,11 +45,15 @@ const Cart = () => {
                 src={item.imageUrl}
                 alt={item.name}
                 className="w-16 h-16 object-contain"
+                onError={(e) =>
+                  (e.target.src = "https://via.placeholder.com/150")
+                }
               />
               <div>
                 <h3 className="text-lg font-semibold">{item.name}</h3>
                 <p className="text-sm text-gray-600">
-                  Rs. {(item.price || 0).toFixed(2)} × {item.qty || 1}
+                  Rs. {(Number(item.price) || 0).toLocaleString("en-LK")} ×{" "}
+                  {item.qty || 1}
                 </p>
               </div>
             </div>
@@ -64,7 +68,9 @@ const Cart = () => {
       </div>
 
       <div className="text-right mt-6">
-        <p className="text-xl font-semibold">Subtotal: Rs. {subtotal.toFixed(2)}</p>
+        <p className="text-xl font-semibold">
+          Subtotal: Rs. {(subtotal || 0).toLocaleString("en-LK")}
+        </p>
         <div className="flex justify-end gap-4 mt-4">
           <button
             onClick={clearCart}

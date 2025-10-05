@@ -31,13 +31,13 @@ export const CartProvider = ({ children }) => {
   }, [items, loading]);
 
   // ✅ Get final price with discount check
-  const getFinalPrice = (product) => {
-    if (product.discountPercent && (product.original || product.price)) {
-      const basePrice = product.original || product.price;
-      return basePrice - (basePrice * product.discountPercent) / 100;
-    }
-    return product.price || product.original || 0;
-  };
+const getFinalPrice = (product) => {
+  if (product.discountPercent && (product.original || product.price || product.basePrice)) {
+    const basePrice = product.original || product.price || product.basePrice;
+    return basePrice - (basePrice * product.discountPercent) / 100;
+  }
+  return product.price || product.original || product.basePrice || 0;
+};
 
   // ✅ Add to cart (prevent duplicates)
   const addToCart = (product, qty = 1) => {
