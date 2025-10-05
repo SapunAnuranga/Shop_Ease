@@ -9,23 +9,24 @@ const ManagePromos = () => {
     discountType: "percent",
   });
 
-  useEffect(() => {
-    loadPromos();
-  }, []);
-
+  // ✅ Single correct loadPromos
   const loadPromos = async () => {
     try {
       const res = await API.get("/promo");
-      setPromos(res.data || []);
+      setPromos(res.data.promos || []); // fixed
     } catch (err) {
       console.error("❌ Load promos failed", err);
     }
   };
 
+  useEffect(() => {
+    loadPromos();
+  }, []);
+
   const handleAdd = async (e) => {
     e.preventDefault();
     try {
-      await API.post("/promo/create", form); // ✅ fixed route
+      await API.post("/promo/create", form);
       setForm({ code: "", discountValue: "", discountType: "percent" });
       loadPromos();
     } catch (err) {

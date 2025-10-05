@@ -4,7 +4,7 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 
 const Checkout = () => {
-  const { items: cartItems, subtotal } = useCart();
+  const { items: cartItems, subtotal, clearCart } = useCart(); // Added clearCart
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(false);
@@ -35,12 +35,16 @@ const Checkout = () => {
       });
       if (res.data.success) {
         setDiscount(res.data.discountAmount);
-        alert("Promo applied!");
+        alert("Promo applied successfully!");
       } else {
-        alert(res.data.message || "Invalid code");
+        alert(res.data.message || "Invalid promo code or conditions not met.");
       }
-    } catch {
-      alert("Error applying promo");
+    } catch (err) {
+      console.error("❌ Error applying promo:", err.response?.data || err);
+      alert(
+        err.response?.data?.message ||
+          "Failed to apply promo. Please try again."
+      );
     }
   };
 
@@ -52,7 +56,13 @@ const Checkout = () => {
       !customerInfo.phone ||
       !customerInfo.address
     ) {
-      alert("Please fill required fields");
+      alert(
+        "Please fill all required customer information fields (First Name, Email, Phone, Address)."
+      );
+      return;
+    }
+    if (cartItems.length === 0) {
+      alert("Your cart is empty. Please add items before checking out.");
       return;
     }
 
@@ -63,31 +73,43 @@ const Checkout = () => {
         items: cartItems,
         subtotal,
         discount,
-        total,
+        // total,   ❌ removed (backend calculates this)
         customerInfo,
       });
 
       if (res.data.success) {
         const payment = res.data.payment;
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = "https://sandbox.payhere.lk/pay/checkout";
-        Object.keys(payment).forEach((key) => {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = key;
-          input.value = payment[key];
-          form.appendChild(input);
-        });
-        document.body.appendChild(form);
-        form.submit();
+        // 🚨 IMPORTANT: PayHere SDK is loaded asynchronously. Ensure it's available.
+        if (window.payhere && typeof window.payhere.startPayment === "function") {
+          window.payhere.startPayment(payment);
+          // Optionally clear cart here, or after successful payment notification
+          // clearCart(); // Consider clearing cart only after successful payment confirmation
+        } else {
+          console.error(
+            "PayHere SDK not loaded or 'startPayment' function not found."
+          );
+          alert("Payment gateway not ready. Please try again in a moment.");
+          setLoading(false); // Stop loading if SDK not ready
+        }
       } else {
-        alert(res.data.message);
+        alert(
+          res.data.message || "Failed to initiate payment. Please try again."
+        );
       }
     } catch (err) {
-      alert("Checkout failed");
+      console.error(
+        "❌ Checkout initiation failed:",
+        err.response?.data || err.message || err
+      );
+      alert(
+        err.response?.data?.message ||
+          "Checkout failed due to an unexpected error. Please try again."
+      );
     } finally {
-      setLoading(false);
+      // Only set loading to false if PayHere SDK is not taking over
+      if (!window.payhere || typeof window.payhere.startPayment !== "function") {
+        setLoading(false);
+      }
     }
   };
 
@@ -98,7 +120,7 @@ const Checkout = () => {
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* LEFT - Compact Form */}
+        {/* LEFT - Customer Information Form */}
         <div className="bg-white p-5 sm:p-6 rounded-xl shadow-md border border-gray-100">
           <h2 className="text-lg font-semibold mb-4 text-gray-800">
             Customer Information
@@ -122,6 +144,7 @@ const Checkout = () => {
                   }
                   className="w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                   placeholder="First name"
+                  required
                 />
               </div>
               <div>
@@ -156,6 +179,7 @@ const Checkout = () => {
                 }
                 className="w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 placeholder="you@example.com"
+                required
               />
             </div>
 
@@ -172,6 +196,7 @@ const Checkout = () => {
                 }
                 className="w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 placeholder="Phone number"
+                required
               />
             </div>
 
@@ -188,6 +213,7 @@ const Checkout = () => {
                 }
                 className="w-full px-3 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                 placeholder="Street address"
+                required
               />
             </div>
 
@@ -207,7 +233,7 @@ const Checkout = () => {
           </div>
         </div>
 
-        {/* RIGHT - Summary */}
+        {/* RIGHT - Order Summary & Payment */}
         <div className="space-y-4">
           <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100">
             <h2 className="text-lg font-semibold mb-3 text-gray-800">

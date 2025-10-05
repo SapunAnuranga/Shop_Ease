@@ -4,6 +4,8 @@ import API from "../api";
 export default function ManageOrders() {
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState("all");
+  const [selectedOrderId, setSelectedOrderId] = useState(null); // for showing real ID
+  const [selectedItems, setSelectedItems] = useState(null); // for showing items
 
   useEffect(() => {
     loadOrders();
@@ -30,6 +32,17 @@ export default function ManageOrders() {
   // filter orders by status
   const filteredOrders =
     filter === "all" ? orders : orders.filter((o) => o.orderStatus === filter);
+
+  // Friendly display ID
+  const formatOrderId = (id, index) => {
+    return `ORD-${index + 1}`;
+  };
+
+  // Format date
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString() + " " + d.toLocaleTimeString();
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
@@ -63,32 +76,42 @@ export default function ManageOrders() {
               <th className="border px-4 py-3">Total</th>
               <th className="border px-4 py-3">Payment</th>
               <th className="border px-4 py-3">Status</th>
+              <th className="border px-4 py-3">Date</th>
               <th className="border px-4 py-3">Action</th>
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.map((order) => (
+            {filteredOrders.map((order, index) => (
               <tr
                 key={order._id}
                 className="text-center hover:bg-gray-50 transition"
               >
-                <td className="border px-4 py-3 text-sm text-gray-600">
-                  {order._id}
+                {/* ✅ Friendly ID clickable */}
+                <td
+                  className="border px-4 py-3 text-sm text-blue-600 underline cursor-pointer"
+                  onClick={() => setSelectedOrderId(order._id)}
+                  title="Click to view full Order ID"
+                >
+                  {formatOrderId(order._id, index)}
                 </td>
+
                 <td className="border px-4 py-3 font-medium">
                   {order.userId?.name || "Unknown"}
                 </td>
-                <td className="border px-4 py-3 text-left text-sm text-gray-600">
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="mb-1">
-                      {item.productId?.name || "Product"} (
-                      {item.variantColor}, {item.size}) × {item.qty}
-                    </div>
-                  ))}
+
+                {/* ✅ Items show count, click to see details */}
+                <td
+                  className="border px-4 py-3 text-blue-600 underline cursor-pointer"
+                  onClick={() => setSelectedItems(order.items)}
+                  title="Click to view items"
+                >
+                  {order.items.length} items
                 </td>
+
                 <td className="border px-4 py-3 font-semibold">
                   Rs. {order.total}
                 </td>
+
                 <td
                   className={`border px-4 py-3 font-semibold ${
                     order.paymentStatus === "paid"
@@ -100,6 +123,7 @@ export default function ManageOrders() {
                 >
                   {order.paymentStatus}
                 </td>
+
                 <td className="border px-4 py-3">
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-medium text-white ${
@@ -115,6 +139,12 @@ export default function ManageOrders() {
                     {order.orderStatus}
                   </span>
                 </td>
+
+                {/* Date */}
+                <td className="border px-4 py-3 text-sm text-gray-600">
+                  {order.createdAt ? formatDate(order.createdAt) : "-"}
+                </td>
+
                 <td className="border px-4 py-3">
                   <select
                     value={order.orderStatus}
@@ -131,7 +161,7 @@ export default function ManageOrders() {
             ))}
             {filteredOrders.length === 0 && (
               <tr>
-                <td colSpan="7" className="p-6 text-gray-500 text-center">
+                <td colSpan="8" className="p-6 text-gray-500 text-center">
                   No orders found.
                 </td>
               </tr>
@@ -139,6 +169,47 @@ export default function ManageOrders() {
           </tbody>
         </table>
       </div>
+
+      {/* ✅ Modal for showing real Order ID */}
+      {selectedOrderId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
+            <h2 className="text-lg font-bold mb-4">Full Order ID</h2>
+            <p className="text-gray-700 break-all">{selectedOrderId}</p>
+            <button
+              onClick={() => setSelectedOrderId(null)}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Modal for showing Items */}
+      {selectedItems && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h2 className="text-lg font-bold mb-4">Order Items</h2>
+            <div className="text-left space-y-2">
+              {selectedItems.map((item, idx) => (
+                <div key={idx} className="border-b pb-2">
+                  <span className="font-medium">
+                    {item.productId?.name || "Product"}
+                  </span>{" "}
+                  × {item.qty}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setSelectedItems(null)}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

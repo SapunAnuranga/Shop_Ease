@@ -30,9 +30,11 @@ export const CartProvider = ({ children }) => {
     }
   }, [items, loading]);
 
+  // ✅ Fixed: prevent NaN when product.original is missing
   const getFinalPrice = (product) => {
-    if (product.discountPercent && product.original) {
-      return product.original - (product.original * product.discountPercent) / 100;
+    if (product.discountPercent && (product.original || product.price)) {
+      const basePrice = product.original || product.price;
+      return basePrice - (basePrice * product.discountPercent) / 100;
     }
     return product.price || product.original || 0;
   };
@@ -89,7 +91,10 @@ export const CartProvider = ({ children }) => {
       }
       return { success: false, message: res.data.message };
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || err.message };
+      return {
+        success: false,
+        message: err.response?.data?.message || err.message,
+      };
     }
   };
 
