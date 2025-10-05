@@ -30,7 +30,7 @@ export const CartProvider = ({ children }) => {
     }
   }, [items, loading]);
 
-  // ✅ Fixed: prevent NaN when product.original is missing
+  // ✅ Get final price with discount check
   const getFinalPrice = (product) => {
     if (product.discountPercent && (product.original || product.price)) {
       const basePrice = product.original || product.price;
@@ -39,16 +39,25 @@ export const CartProvider = ({ children }) => {
     return product.price || product.original || 0;
   };
 
+  // ✅ Add to cart (prevent duplicates)
   const addToCart = (product, qty = 1) => {
     if (!product || !product._id) return;
+
+    console.log("🛒 Adding to cart:", product.name, "qty:", qty);
+
     setItems((prev) => {
       const idx = prev.findIndex((i) => i.productId === product._id);
+
       if (idx >= 0) {
+        // already in cart → increase qty
         const updated = [...prev];
         updated[idx].qty += qty;
+        console.log("➡️ Updated qty:", updated);
         return updated;
       }
-      return [
+
+      // new product → add
+      const newCart = [
         ...prev,
         {
           productId: product._id,
@@ -58,12 +67,29 @@ export const CartProvider = ({ children }) => {
           qty,
         },
       ];
+      console.log("✅ New item added:", newCart);
+      return newCart;
     });
   };
 
+
   const removeFromCart = (productId) => {
-    setItems((prev) => prev.filter((i) => i.productId !== productId));
-  };
+  setItems((prev) => {
+    const idx = prev.findIndex((i) => i.productId === productId);
+    if (idx >= 0) {
+      const updated = [...prev];
+      if (updated[idx].qty > 1) {
+        updated[idx].qty -= 1; // reduce by 1
+        return updated;
+      } else {
+        // if qty == 1 → remove completely
+        return prev.filter((i) => i.productId !== productId);
+      }
+    }
+    return prev;
+  });
+};
+
 
   const clearCart = () => {
     setItems([]);

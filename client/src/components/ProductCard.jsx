@@ -25,14 +25,14 @@ const ProductCard = ({ product }) => {
     addToCart(product);
   };
 
-  // ProductCard.jsx (only changed bits shown)
-const finalPrice = (() => {
-  if (product.discountPercent && product.original) {
-    return product.original - (product.original * product.discountPercent) / 100;
-  }
-  if (product.price) return product.price;
-  return product.original || 0;
-})();
+  // Final price calculation for display only
+  const finalPrice = (() => {
+    if (product.discountPercent && product.original) {
+      return product.original - (product.original * product.discountPercent) / 100;
+    }
+    if (product.price) return product.price;
+    return product.original || 0;
+  })();
 
   return (
     <div className="flex flex-col justify-between border rounded-xl shadow-sm p-4 hover:shadow-md transition-all duration-200 h-full relative">
@@ -61,9 +61,7 @@ const finalPrice = (() => {
         {/* Price */}
         <div className="flex items-center gap-2 mt-1">
           <p className="text-md font-bold text-gray-800">
-            {typeof finalPrice === "number"
-              ? `Rs. ${finalPrice.toLocaleString("en-LK")}`
-              : "Rs. N/A"}
+            Rs. {Number(finalPrice).toLocaleString("en-LK")}
           </p>
           {product.discountPercent > 0 && product.original && (
             <p className="text-sm text-gray-500 line-through">
@@ -76,12 +74,14 @@ const finalPrice = (() => {
       {/* Buttons */}
       <div className="flex gap-2 mt-4">
         <button
+          type="button"
           onClick={handleAddToCart}
           className="w-1/2 px-3 py-2 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition"
         >
           Add to Cart
         </button>
         <button
+          type="button"
           onClick={handleBuyNow}
           className="w-1/2 px-3 py-2 bg-black text-white text-sm rounded hover:bg-gray-800 transition"
         >
