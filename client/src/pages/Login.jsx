@@ -24,7 +24,6 @@ const Login = () => {
     setIsLoading(false);
 
     if (success) {
-      // 🔐 check role from localStorage
       const savedUser = JSON.parse(localStorage.getItem("user"));
       if (savedUser?.role === "admin") {
         navigate("/admin/dashboard");
@@ -37,7 +36,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+    <div className="flex justify-center mt-20">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center">
           Login to Your Account

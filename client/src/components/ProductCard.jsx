@@ -8,30 +8,51 @@ const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
+  // ensure product has an _id for addToCart (normalize common id fields)
+  const normalizeProductForCart = (p) => {
+    return {
+      ...p,
+      _id: p._id || p.id || p.productId || null,
+    };
+  };
+
+  // Add to Cart → always add, no login check
+  const handleAddToCart = () => {
+    const prod = normalizeProductForCart(product);
+    if (!prod._id) {
+      console.error("Cannot add product to cart — missing id:", product);
+      return;
+    }
+    addToCart(prod);
+  };
+
+  // Buy Now → if not logged in -> go to /account
+  // if logged in -> add to cart and go to /cart
   const handleBuyNow = () => {
     if (!isLoggedIn) {
       navigate("/account");
       return;
     }
-    addToCart(product);
-    navigate("/cart");
-  };
 
-  const handleAddToCart = () => {
-    if (!isLoggedIn) {
-      navigate("/account");
+    const prod = normalizeProductForCart(product);
+    if (!prod._id) {
+      console.error("Cannot add product to cart (Buy Now) — missing id:", product);
+      // still navigate to cart since user wanted to checkout? here we choose to keep user on safe side:
+      navigate("/cart");
       return;
     }
-    addToCart(product);
+
+    addToCart(prod);
+    navigate("/cart");
   };
 
   // Final price calculation for display only
   const finalPrice = (() => {
-    if (product.discountPercent && product.original) {
-      return product.original - (product.original * product.discountPercent) / 100;
+    const base = product.original ?? product.price ?? product.basePrice ?? 0;
+    if (product.discountPercent && base) {
+      return base - (base * product.discountPercent) / 100;
     }
-    if (product.price) return product.price;
-    return product.original || 0;
+    return base;
   })();
 
   return (
@@ -65,7 +86,7 @@ const ProductCard = ({ product }) => {
           </p>
           {product.discountPercent > 0 && product.original && (
             <p className="text-sm text-gray-500 line-through">
-              Rs. {product.original.toLocaleString("en-LK")}
+              Rs. {Number(product.original).toLocaleString("en-LK")}
             </p>
           )}
         </div>

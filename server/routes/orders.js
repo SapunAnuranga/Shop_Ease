@@ -188,4 +188,30 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// ✅ Update order status (ADMIN / staff)
+router.put("/:id", async (req, res) => {
+  try {
+    const { orderStatus } = req.body;
+
+    if (!orderStatus) {
+      return res.status(400).json({ success: false, message: "Order status is required" });
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    // Update order status
+    order.orderStatus = orderStatus.toLowerCase(); // normalize (created/processing/delivered/cancelled)
+    await order.save();
+
+    res.json({ success: true, message: "Order status updated successfully", order });
+  } catch (err) {
+    console.error("❌ Error updating order status:", err);
+    res.status(500).json({ success: false, message: "Failed to update order status" });
+  }
+});
+
+
 module.exports = router;

@@ -4,8 +4,8 @@ import API from "../api";
 export default function ManageOrders() {
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState("all");
-  const [selectedOrderId, setSelectedOrderId] = useState(null); // for showing real ID
-  const [selectedItems, setSelectedItems] = useState(null); // for showing items
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [selectedItems, setSelectedItems] = useState(null);
 
   useEffect(() => {
     loadOrders();
@@ -22,23 +22,29 @@ export default function ManageOrders() {
 
   const updateStatus = async (id, status) => {
     try {
+      // 🟢 Optimistic update - update UI immediately
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === id ? { ...order, orderStatus: status } : order
+        )
+      );
+
+      // 🟢 Send update to server
       await API.put(`/orders/${id}`, { orderStatus: status });
-      loadOrders();
     } catch (err) {
       console.error("❌ Update failed", err);
+      // 🔴 Optional: rollback if API fails (reload from DB)
+      loadOrders();
     }
   };
 
-  // filter orders by status
   const filteredOrders =
     filter === "all" ? orders : orders.filter((o) => o.orderStatus === filter);
 
-  // Friendly display ID
   const formatOrderId = (id, index) => {
     return `ORD-${index + 1}`;
   };
 
-  // Format date
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
     return d.toLocaleDateString() + " " + d.toLocaleTimeString();
